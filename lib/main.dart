@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:calculadora_imc/ImcService.dart';
 
 void main() {
   runApp(MaterialApp(
@@ -26,26 +27,16 @@ class _HomeState extends State<Home> {
     });
   }
 
-  void calcularIMC() {
-    setState(() {
-      double peso = double.parse((pesoController.text));
-      double altura = double.parse((alturaController.text)) / 100;
-      double imc = peso / (altura * altura);
+  double _obterAltura() {
+    return double.parse((alturaController.text)) / 100;
+  }
 
-      if (imc < 18.6) {
-        _resultado = "Abaixo do Peso (${imc.toStringAsPrecision(3)})";
-      } else if (imc >= 18.6 && imc < 24.9) {
-        _resultado = "Peso Ideal (${imc.toStringAsPrecision(3)})";
-      } else if (imc >= 24.9 && imc < 29.9) {
-        _resultado = "Levemente Acima Peso (${imc.toStringAsPrecision(3)})";
-      } else if (imc >= 29.6 && imc < 34.9) {
-        _resultado = "Obesidade Grau I (${imc.toStringAsPrecision(3)})";
-      } else if (imc >= 24.9 && imc < 39.9) {
-        _resultado = "Obesidade Grau II (${imc.toStringAsPrecision(3)})";
-      } else if (imc >= 40) {
-        _resultado = "Obesidade Grau III (${imc.toStringAsPrecision(3)})";
-      }
-    });
+  double _obterPeso() {
+    return double.parse((pesoController.text));
+  }
+
+  double _calcularIMC(double altura, double peso) {
+    return peso / (altura * altura);
   }
 
   String _valiarCampo(String value) {
@@ -53,10 +44,29 @@ class _HomeState extends State<Home> {
       return "Este campo deve ser preenchido!";
     }
   }
-
   void _onPress_Concluir() {
     if (_formKey.currentState.validate()) {
-      calcularIMC();
+      setState(() {
+        double altura = _obterAltura();
+        double peso = _obterPeso();
+
+        final imcService = new ImcService(altura, peso);
+        double imc = imcService.Imc;
+
+        if (imc < 18.6) {
+          _resultado = "Abaixo do Peso (${imc.toStringAsPrecision(3)})";
+        } else if (imc >= 18.6 && imc < 24.9) {
+          _resultado = "Peso Ideal (${imc.toStringAsPrecision(3)})";
+        } else if (imc >= 24.9 && imc < 29.9) {
+          _resultado = "Levemente Acima Peso (${imc.toStringAsPrecision(3)})";
+        } else if (imc >= 29.6 && imc < 34.9) {
+          _resultado = "Obesidade Grau I (${imc.toStringAsPrecision(3)})";
+        } else if (imc >= 24.9 && imc < 39.9) {
+          _resultado = "Obesidade Grau II (${imc.toStringAsPrecision(3)})";
+        } else if (imc >= 40) {
+          _resultado = "Obesidade Grau III (${imc.toStringAsPrecision(3)})";
+        }
+      });
     }
   }
 
@@ -84,18 +94,20 @@ class _HomeState extends State<Home> {
                   size: 120.0,
                 ),
                 TextFormField(
+                  key: Key("tffPeso"),
                   controller: pesoController,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey, fontSize: 20.0),
                   validator: (value) {
-                   return _valiarCampo(value);
+                    return _valiarCampo(value);
                   },
                   decoration: InputDecoration(
                       labelText: "Peso (kg)",
                       labelStyle: TextStyle(color: Colors.grey)),
                 ),
                 TextFormField(
+                  key: Key("tffAltura"),
                   controller: alturaController,
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
@@ -112,6 +124,7 @@ class _HomeState extends State<Home> {
                   child: Container(
                     height: 50.0,
                     child: RaisedButton(
+                      key: Key("btnCalcular"),
                       onPressed: _onPress_Concluir,
                       color: Colors.grey,
                       child: Text(
